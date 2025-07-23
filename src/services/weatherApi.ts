@@ -5,10 +5,11 @@ import type {
   GeocodeResponse, 
   LocationSearchResult 
 } from '../types/weather';
+import type { UnitSystem } from '../context/UnitsContextTypes';
 
 // Weather API functions
-export const getCurrentWeather = async (lat: number, lon: number): Promise<CurrentWeatherResponse> => {
-  const url = `${WEATHER_API_URL}/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`;
+export const getCurrentWeather = async (lat: number, lon: number, units: UnitSystem = 'metric'): Promise<CurrentWeatherResponse> => {
+  const url = `${WEATHER_API_URL}/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=${units}`;
   
   const response = await fetch(url);
   if (!response.ok) {
@@ -18,8 +19,8 @@ export const getCurrentWeather = async (lat: number, lon: number): Promise<Curre
   return response.json();
 };
 
-export const getForecast = async (lat: number, lon: number): Promise<ForecastResponse> => {
-  const url = `${WEATHER_API_URL}/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`;
+export const getForecast = async (lat: number, lon: number, units: UnitSystem = 'metric'): Promise<ForecastResponse> => {
+  const url = `${WEATHER_API_URL}/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=${units}`;
   
   const response = await fetch(url);
   if (!response.ok) {
@@ -88,20 +89,62 @@ export const getWeatherIconUrl = (icon: string, size: '2x' | '4x' = '2x'): strin
   return `https://openweathermap.org/img/wn/${icon}@${size}.png`;
 };
 
-export const formatTemperature = (temp: number): string => {
-  return `${Math.round(temp)}°C`;
+export const formatTemperature = (temp: number, unitSystem: UnitSystem = 'metric'): string => {
+  const roundedTemp = Math.round(temp);
+  switch (unitSystem) {
+    case 'metric':
+      return `${roundedTemp}°C`;
+    case 'imperial':
+      return `${roundedTemp}°F`;
+    case 'standard':
+      return `${roundedTemp}K`;
+    default:
+      return `${roundedTemp}°C`;
+  }
 };
 
-export const formatWindSpeed = (speed: number): string => {
-  return `${Math.round(speed * 3.6)} km/h`; // Convert m/s to km/h
+export const formatWindSpeed = (speed: number, unitSystem: UnitSystem = 'metric'): string => {
+  switch (unitSystem) {
+    case 'metric':
+      // OpenWeatherMap returns m/s for metric, convert to km/h
+      return `${Math.round(speed * 3.6)} km/h`;
+    case 'imperial':
+      // OpenWeatherMap returns mph for imperial
+      return `${Math.round(speed)} mph`;
+    case 'standard':
+      // OpenWeatherMap returns m/s for standard
+      return `${Math.round(speed * 10) / 10} m/s`;
+    default:
+      return `${Math.round(speed * 3.6)} km/h`;
+  }
 };
 
 export const formatPressure = (pressure: number): string => {
   return `${pressure} hPa`;
 };
 
-export const formatVisibility = (visibility: number): string => {
-  return `${(visibility / 1000).toFixed(1)} km`;
+export const formatVisibility = (visibility: number, unitSystem: UnitSystem = 'metric'): string => {
+  switch (unitSystem) {
+    case 'metric':
+    case 'standard':
+      return `${(visibility / 1000).toFixed(1)} km`;
+    case 'imperial':
+      return `${(visibility / 1609.34).toFixed(1)} mi`; // Convert meters to miles
+    default:
+      return `${(visibility / 1000).toFixed(1)} km`;
+  }
+};
+
+export const formatPrecipitation = (amount: number, unitSystem: UnitSystem = 'metric'): string => {
+  switch (unitSystem) {
+    case 'metric':
+    case 'standard':
+      return `${amount} mm`;
+    case 'imperial':
+      return `${(amount / 25.4).toFixed(2)} in`; // Convert mm to inches
+    default:
+      return `${amount} mm`;
+  }
 };
 
 export const getWindDirection = (degrees: number): string => {

@@ -23,6 +23,8 @@ import {
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import type { ForecastResponse, ForecastItem } from '../types/weather';
+import type { UnitSystem } from '../context/UnitsContextTypes';
+import { useUnits } from '../hooks/useUnits';
 import {
   formatTemperature,
   formatWindSpeed,
@@ -30,6 +32,7 @@ import {
   getWindDirection,
   getWeatherIconUrl,
   formatVisibility,
+  formatPrecipitation,
 } from '../services/weatherApi';
 
 interface WeatherForecastProps {
@@ -86,7 +89,7 @@ const groupForecastByDay = (forecastList: ForecastItem[]): DailyForecast[] => {
   });
 };
 
-const ForecastDetail: React.FC<{ item: ForecastItem }> = ({ item }) => (
+const ForecastDetail: React.FC<{ item: ForecastItem; unitSystem: UnitSystem }> = ({ item, unitSystem }) => (
   <Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1, mb: 1 }}>
     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
       <Avatar
@@ -105,7 +108,7 @@ const ForecastDetail: React.FC<{ item: ForecastItem }> = ({ item }) => (
         </Typography>
       </Box>
       <Typography variant="h6" fontWeight="bold" color="primary">
-        {formatTemperature(item.main.temp)}
+        {formatTemperature(item.main.temp, unitSystem)}
       </Typography>
     </Box>
 
@@ -114,7 +117,7 @@ const ForecastDetail: React.FC<{ item: ForecastItem }> = ({ item }) => (
          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
            <ThermostatIcon fontSize="small" color="primary" />
            <Typography variant="body2">
-             Feels {formatTemperature(item.main.feels_like)}
+             Feels {formatTemperature(item.main.feels_like, unitSystem)}
            </Typography>
          </Box>
        </Grid>
@@ -122,7 +125,7 @@ const ForecastDetail: React.FC<{ item: ForecastItem }> = ({ item }) => (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <WindIcon fontSize="small" color="primary" />
            <Typography variant="body2">
-             {formatWindSpeed(item.wind.speed)} {getWindDirection(item.wind.deg)}
+             {formatWindSpeed(item.wind.speed, unitSystem)} {getWindDirection(item.wind.deg)}
            </Typography>
          </Box>
        </Grid>
@@ -154,34 +157,34 @@ const ForecastDetail: React.FC<{ item: ForecastItem }> = ({ item }) => (
          </Grid>
        )}
        
-              {item.rain && item.rain['3h'] && (
-          <Grid size={{ xs: 6, sm: 3 }}>
-           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-             <RainIcon fontSize="small" color="info" />
-             <Typography variant="body2">
-               {item.rain['3h']} mm
-             </Typography>
-           </Box>
-         </Grid>
-       )}
-       
-              {item.snow && item.snow['3h'] && (
-          <Grid size={{ xs: 6, sm: 3 }}>
-           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-             <SnowIcon fontSize="small" color="info" />
-             <Typography variant="body2">
-               {item.snow['3h']} mm
-             </Typography>
-           </Box>
-         </Grid>
-       )}
+                          {item.rain && item.rain['3h'] && (
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <RainIcon fontSize="small" color="info" />
+                  <Typography variant="body2">
+                    {formatPrecipitation(item.rain['3h'], unitSystem)}
+                  </Typography>
+                </Box>
+              </Grid>
+            )}
+
+            {item.snow && item.snow['3h'] && (
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <SnowIcon fontSize="small" color="info" />
+                  <Typography variant="body2">
+                    {formatPrecipitation(item.snow['3h'], unitSystem)}
+                  </Typography>
+                </Box>
+              </Grid>
+            )}
               
         <Grid size={{ xs: 6, sm: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <VisibilityIcon fontSize="small" color="primary" />
-           <Typography variant="body2">
-             {formatVisibility(item.visibility)}
-           </Typography>
+                         <Typography variant="body2">
+                {formatVisibility(item.visibility, unitSystem)}
+              </Typography>
          </Box>
        </Grid>
     </Grid>
@@ -189,6 +192,7 @@ const ForecastDetail: React.FC<{ item: ForecastItem }> = ({ item }) => (
 );
 
 export const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
+  const { unitSystem } = useUnits();
   const dailyForecasts = groupForecastByDay(forecast.list);
 
   return (
@@ -219,7 +223,7 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) =>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                   <Chip 
-                    label={`${formatTemperature(day.maxTemp)} / ${formatTemperature(day.minTemp)}`}
+                    label={`${formatTemperature(day.maxTemp, unitSystem)} / ${formatTemperature(day.minTemp, unitSystem)}`}
                     color="primary"
                     variant="outlined"
                   />
@@ -233,9 +237,9 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) =>
               <Typography variant="h6" gutterBottom>
                 3-Hour Intervals
               </Typography>
-              {day.items.map((item) => (
-                <ForecastDetail key={item.dt} item={item} />
-              ))}
+                             {day.items.map((item) => (
+                 <ForecastDetail key={item.dt} item={item} unitSystem={unitSystem} />
+               ))}
             </AccordionDetails>
           </Accordion>
         ))}

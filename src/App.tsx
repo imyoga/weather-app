@@ -17,13 +17,16 @@ import {
   GitHub as GitHubIcon,
 } from '@mui/icons-material';
 import { ThemeProvider } from './context/ThemeContext';
+import { UnitsProvider } from './context/UnitsContext';
 import { SearchBar } from './components/SearchBar';
 import { CurrentWeather } from './components/CurrentWeather';
 import { WeatherForecast } from './components/WeatherForecast';
 import { ThemeToggle } from './components/ThemeToggle';
+import { UnitsToggle } from './components/UnitsToggle';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { getCurrentWeather, getForecast, reverseGeocode } from './services/weatherApi';
+import { useUnits } from './hooks/useUnits';
 import type { CurrentWeatherResponse, ForecastResponse, LocationSearchResult, Coordinates } from './types/weather';
 import './App.css';
 
@@ -37,6 +40,7 @@ interface AppState {
 }
 
 const WeatherApp: React.FC = () => {
+  const { unitSystem } = useUnits();
   const [state, setState] = useState<AppState>({
     loading: false,
   });
@@ -46,8 +50,8 @@ const WeatherApp: React.FC = () => {
 
     try {
       const [currentWeather, forecast] = await Promise.all([
-        getCurrentWeather(coordinates.lat, coordinates.lon),
-        getForecast(coordinates.lat, coordinates.lon)
+        getCurrentWeather(coordinates.lat, coordinates.lon, unitSystem),
+        getForecast(coordinates.lat, coordinates.lon, unitSystem)
       ]);
 
       let locationName = locationResult?.formatted;
@@ -118,6 +122,17 @@ const WeatherApp: React.FC = () => {
     fetchWeatherData(defaultCoordinates);
   }, []);
 
+  // Refetch weather data when unit system changes
+  useEffect(() => {
+    if (state.currentWeather) {
+      const coordinates: Coordinates = {
+        lat: state.currentWeather.coord.lat,
+        lon: state.currentWeather.coord.lon,
+      };
+      fetchWeatherData(coordinates, state.selectedLocation);
+    }
+  }, [unitSystem]);
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       {/* App Bar */}
@@ -140,6 +155,8 @@ const WeatherApp: React.FC = () => {
                 <LocationIcon />
               </IconButton>
             </Tooltip>
+            
+            <UnitsToggle />
             
             <ThemeToggle />
             
@@ -254,7 +271,9 @@ export const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <WeatherApp />
+        <UnitsProvider>
+          <WeatherApp />
+        </UnitsProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

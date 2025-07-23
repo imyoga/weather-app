@@ -23,11 +23,13 @@ import {
   LocationOn as LocationIcon,
 } from "@mui/icons-material";
 import type { CurrentWeatherResponse } from "../types/weather";
+import { useUnits } from "../hooks/useUnits";
 import {
   formatTemperature,
   formatWindSpeed,
   formatPressure,
   formatVisibility,
+  formatPrecipitation,
   getWindDirection,
   formatTime,
   getWeatherIconUrl,
@@ -67,6 +69,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
   weather,
   locationName,
 }) => {
+  const { unitSystem } = useUnits();
   const mainWeather = weather.weather[0];
   const sunrise = formatTime(weather.sys.sunrise, weather.timezone);
   const sunset = formatTime(weather.sys.sunset, weather.timezone);
@@ -95,7 +98,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
               fontWeight="bold"
               color="primary"
             >
-              {formatTemperature(weather.main.temp)}
+              {formatTemperature(weather.main.temp, unitSystem)}
             </Typography>
             <Typography
               variant="h6"
@@ -105,7 +108,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
               {mainWeather.description}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Feels like {formatTemperature(weather.main.feels_like)}
+              Feels like {formatTemperature(weather.main.feels_like, unitSystem)}
             </Typography>
           </Box>
         </Box>
@@ -113,12 +116,12 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
         {/* Weather Tags */}
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
           <Chip
-            label={`High: ${formatTemperature(weather.main.temp_max)}`}
+            label={`High: ${formatTemperature(weather.main.temp_max, unitSystem)}`}
             color="primary"
             variant="outlined"
           />
           <Chip
-            label={`Low: ${formatTemperature(weather.main.temp_min)}`}
+            label={`Low: ${formatTemperature(weather.main.temp_min, unitSystem)}`}
             color="primary"
             variant="outlined"
           />
@@ -141,12 +144,12 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
             <WeatherDetail
               icon={<ThermostatIcon color="primary" />}
               label="Feels Like"
-              value={formatTemperature(weather.main.feels_like)}
+              value={formatTemperature(weather.main.feels_like, unitSystem)}
             />
             <WeatherDetail
               icon={<WindIcon color="primary" />}
               label="Wind"
-              value={`${formatWindSpeed(weather.wind.speed)} ${getWindDirection(
+              value={`${formatWindSpeed(weather.wind.speed, unitSystem)} ${getWindDirection(
                 weather.wind.deg
               )}`}
             />
@@ -154,7 +157,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
               <WeatherDetail
                 icon={<WindIcon color="primary" />}
                 label="Wind Gusts"
-                value={formatWindSpeed(weather.wind.gust)}
+                value={formatWindSpeed(weather.wind.gust, unitSystem)}
               />
             )}
             <WeatherDetail
@@ -180,7 +183,7 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
             <WeatherDetail
               icon={<VisibilityIcon color="primary" />}
               label="Visibility"
-              value={formatVisibility(weather.visibility)}
+              value={formatVisibility(weather.visibility, unitSystem)}
             />
             <WeatherDetail
               icon={<CloudIcon color="primary" />}
@@ -201,14 +204,14 @@ export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
               <WeatherDetail
                 icon={<RainIcon color="info" />}
                 label="Rain (1h)"
-                value={`${weather.rain["1h"]} mm`}
+                value={formatPrecipitation(weather.rain["1h"], unitSystem)}
               />
             )}
             {weather.snow && weather.snow["1h"] && (
               <WeatherDetail
                 icon={<SnowIcon color="info" />}
                 label="Snow (1h)"
-                value={`${weather.snow["1h"]} mm`}
+                value={formatPrecipitation(weather.snow["1h"], unitSystem)}
               />
             )}
           </Grid>
