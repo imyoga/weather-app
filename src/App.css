@@ -1,0 +1,69 @@
+/* Weather App Specific Styles */
+
+/* Animated weather icons */
+.weather-icon {
+  transition: transform 0.3s ease;
+}
+
+.weather-icon:hover {
+  transform: scale(1.05);
+}
+
+/* Smooth card animations */
+.weather-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weather-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Loading animation enhancement */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Custom backdrop blur for modern browsers */
+.backdrop-blur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-hide {
+    display: none !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .weather-card {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

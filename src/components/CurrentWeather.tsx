@@ -1,0 +1,256 @@
+import React from "react";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Chip,
+  Divider,
+  Avatar,
+} from "@mui/material";
+import { Grid } from "@mui/material";
+import {
+  Thermostat as ThermostatIcon,
+  Air as WindIcon,
+  Visibility as VisibilityIcon,
+  Opacity as HumidityIcon,
+  Speed as PressureIcon,
+  Cloud as CloudIcon,
+  WbSunny as SunriseIcon,
+  Brightness3 as SunsetIcon,
+  Umbrella as RainIcon,
+  AcUnit as SnowIcon,
+  LocationOn as LocationIcon,
+} from "@mui/icons-material";
+import type { CurrentWeatherResponse } from "../types/weather";
+import {
+  formatTemperature,
+  formatWindSpeed,
+  formatPressure,
+  formatVisibility,
+  getWindDirection,
+  formatTime,
+  getWeatherIconUrl,
+} from "../services/weatherApi";
+
+interface CurrentWeatherProps {
+  weather: CurrentWeatherResponse;
+  locationName?: string;
+}
+
+interface WeatherDetailProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  unit?: string;
+}
+
+const WeatherDetail: React.FC<WeatherDetailProps> = ({
+  icon,
+  label,
+  value,
+  unit,
+}) => (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+    {icon}
+    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
+      {label}:
+    </Typography>
+    <Typography variant="body2" fontWeight="medium">
+      {value}
+      {unit && <span style={{ opacity: 0.7 }}> {unit}</span>}
+    </Typography>
+  </Box>
+);
+
+export const CurrentWeather: React.FC<CurrentWeatherProps> = ({
+  weather,
+  locationName,
+}) => {
+  const mainWeather = weather.weather[0];
+  const sunrise = formatTime(weather.sys.sunrise, weather.timezone);
+  const sunset = formatTime(weather.sys.sunset, weather.timezone);
+
+  return (
+    <Card elevation={3}>
+      <CardContent sx={{ p: 3 }}>
+        {/* Header */}
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+          <LocationIcon color="primary" sx={{ mr: 1 }} />
+          <Typography variant="h5" component="h2" fontWeight="bold">
+            {locationName || weather.name}, {weather.sys.country}
+          </Typography>
+        </Box>
+
+        {/* Main Weather Info */}
+        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+          <Avatar
+            src={getWeatherIconUrl(mainWeather.icon, "4x")}
+            sx={{ width: 100, height: 100, mr: 3 }}
+          />
+          <Box>
+            <Typography
+              variant="h2"
+              component="div"
+              fontWeight="bold"
+              color="primary"
+            >
+              {formatTemperature(weather.main.temp)}
+            </Typography>
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              sx={{ textTransform: "capitalize" }}
+            >
+              {mainWeather.description}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Feels like {formatTemperature(weather.main.feels_like)}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Weather Tags */}
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
+          <Chip
+            label={`High: ${formatTemperature(weather.main.temp_max)}`}
+            color="primary"
+            variant="outlined"
+          />
+          <Chip
+            label={`Low: ${formatTemperature(weather.main.temp_min)}`}
+            color="primary"
+            variant="outlined"
+          />
+          <Chip
+            label={`Humidity: ${weather.main.humidity}%`}
+            color="secondary"
+            variant="outlined"
+          />
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* Detailed Weather Information */}
+        <Typography variant="h6" gutterBottom>
+          Weather Details
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <WeatherDetail
+              icon={<ThermostatIcon color="primary" />}
+              label="Feels Like"
+              value={formatTemperature(weather.main.feels_like)}
+            />
+            <WeatherDetail
+              icon={<WindIcon color="primary" />}
+              label="Wind"
+              value={`${formatWindSpeed(weather.wind.speed)} ${getWindDirection(
+                weather.wind.deg
+              )}`}
+            />
+            {weather.wind.gust && (
+              <WeatherDetail
+                icon={<WindIcon color="primary" />}
+                label="Wind Gusts"
+                value={formatWindSpeed(weather.wind.gust)}
+              />
+            )}
+            <WeatherDetail
+              icon={<HumidityIcon color="primary" />}
+              label="Humidity"
+              value={`${weather.main.humidity}%`}
+            />
+            <WeatherDetail
+              icon={<PressureIcon color="primary" />}
+              label="Pressure"
+              value={formatPressure(weather.main.pressure)}
+            />
+            {weather.main.sea_level && (
+              <WeatherDetail
+                icon={<PressureIcon color="primary" />}
+                label="Sea Level"
+                value={formatPressure(weather.main.sea_level)}
+              />
+            )}
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <WeatherDetail
+              icon={<VisibilityIcon color="primary" />}
+              label="Visibility"
+              value={formatVisibility(weather.visibility)}
+            />
+            <WeatherDetail
+              icon={<CloudIcon color="primary" />}
+              label="Cloudiness"
+              value={`${weather.clouds.all}%`}
+            />
+            <WeatherDetail
+              icon={<SunriseIcon color="warning" />}
+              label="Sunrise"
+              value={sunrise}
+            />
+            <WeatherDetail
+              icon={<SunsetIcon color="warning" />}
+              label="Sunset"
+              value={sunset}
+            />
+            {weather.rain && weather.rain["1h"] && (
+              <WeatherDetail
+                icon={<RainIcon color="info" />}
+                label="Rain (1h)"
+                value={`${weather.rain["1h"]} mm`}
+              />
+            )}
+            {weather.snow && weather.snow["1h"] && (
+              <WeatherDetail
+                icon={<SnowIcon color="info" />}
+                label="Snow (1h)"
+                value={`${weather.snow["1h"]} mm`}
+              />
+            )}
+          </Grid>
+        </Grid>
+
+        {/* Additional Information */}
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Additional Information
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <WeatherDetail
+              icon={<LocationIcon color="primary" />}
+              label="Coordinates"
+              value={`${weather.coord.lat.toFixed(
+                4
+              )}, ${weather.coord.lon.toFixed(4)}`}
+            />
+            <WeatherDetail
+              icon={<LocationIcon color="primary" />}
+              label="Station Base"
+              value={weather.base}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <WeatherDetail
+              icon={<LocationIcon color="primary" />}
+              label="Weather ID"
+              value={mainWeather.id.toString()}
+            />
+            {weather.main.grnd_level && (
+              <WeatherDetail
+                icon={<PressureIcon color="primary" />}
+                label="Ground Level"
+                value={formatPressure(weather.main.grnd_level)}
+              />
+            )}
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
+  );
+};
