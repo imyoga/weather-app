@@ -16,7 +16,7 @@ import { Grid } from '@mui/material'
 import {
 	ExpandMore as ExpandMoreIcon,
 	Air as WindIcon,
-	Opacity as HumidityIcon,
+	DeviceThermostat as HumidityIcon,
 	Umbrella as RainIcon,
 	AcUnit as SnowIcon,
 } from '@mui/icons-material'
