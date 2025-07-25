@@ -10,17 +10,15 @@ import {
 	AccordionSummary,
 	AccordionDetails,
 	Divider,
+	Tooltip,
 } from '@mui/material'
 import { Grid } from '@mui/material'
 import {
 	ExpandMore as ExpandMoreIcon,
-	Thermostat as ThermostatIcon,
 	Air as WindIcon,
 	Opacity as HumidityIcon,
-	Cloud as CloudIcon,
 	Umbrella as RainIcon,
 	AcUnit as SnowIcon,
-	Visibility as VisibilityIcon,
 } from '@mui/icons-material'
 import type { ForecastResponse, ForecastItem } from '../types/weather'
 import type { UnitSystem } from '../context/UnitsContextTypes'
@@ -29,9 +27,7 @@ import {
 	formatTemperature,
 	formatWindSpeed,
 	formatDate,
-	getWindDirection,
 	getWeatherIconUrl,
-	formatVisibility,
 	formatPrecipitation,
 } from '../services/weatherApi'
 
@@ -93,112 +89,194 @@ const ForecastDetail: React.FC<{
 	item: ForecastItem
 	unitSystem: UnitSystem
 }> = ({ item, unitSystem }) => (
-	<Box sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1, mb: 1 }}>
-		<Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-			<Avatar
-				src={getWeatherIconUrl(item.weather[0].icon)}
-				sx={{ width: 40, height: 40, mr: 2 }}
-			/>
-			<Box sx={{ flex: 1 }}>
-				<Typography variant='body1' fontWeight='medium'>
-					{new Date(item.dt * 1000).toLocaleTimeString('en-US', {
-						hour: '2-digit',
-						minute: '2-digit',
-					})}
-				</Typography>
+	<Box
+		sx={{
+			p: 1.5,
+			border: 1,
+			borderColor: 'divider',
+			borderRadius: 1,
+			minWidth: '140px',
+			maxWidth: '160px',
+			textAlign: 'center',
+			backgroundColor: 'background.paper',
+		}}
+	>
+		{/* Time */}
+		<Typography
+			variant='caption'
+			fontWeight='medium'
+			color='primary'
+			sx={{ display: 'block', mb: 0.5 }}
+		>
+			{new Date(item.dt * 1000).toLocaleTimeString('en-US', {
+				hour: '2-digit',
+				minute: '2-digit',
+			})}
+		</Typography>
+
+		{/* Weather Icon */}
+		<Avatar
+			src={getWeatherIconUrl(item.weather[0].icon)}
+			sx={{ width: 60, height: 32, mx: 'auto', mb: 0.5 }}
+		/>
+
+		{/* Temperature with Feels Like */}
+		<Typography
+			variant='body1'
+			fontWeight='bold'
+			color='primary'
+			sx={{ mb: 0.5 }}
+		>
+			{formatTemperature(item.main.temp, unitSystem)}{' '}
+			<Tooltip
+				title={`Feels like ${formatTemperature(
+					item.main.feels_like,
+					unitSystem
+				)}`}
+				arrow
+			>
 				<Typography
-					variant='body2'
+					component='span'
+					variant='caption'
 					color='text.secondary'
-					sx={{ textTransform: 'capitalize' }}
+					fontWeight='normal'
+					sx={{ cursor: 'help' }}
 				>
-					{item.weather[0].description}
+					({formatTemperature(item.main.feels_like, unitSystem)})
 				</Typography>
-			</Box>
-			<Box sx={{ textAlign: 'center' }}>
-				<Typography variant='h6' fontWeight='bold' color='primary'>
-					{formatTemperature(item.main.temp, unitSystem)}
-				</Typography>
-				<Typography variant='caption' color='text.secondary'>
-					Feels {formatTemperature(item.main.feels_like, unitSystem)}
-				</Typography>
-			</Box>
-		</Box>
+			</Tooltip>
+		</Typography>
 
-		<Grid container spacing={1} sx={{ fontSize: '0.875rem' }}>
-			<Grid size={{ xs: 6, sm: 3 }}>
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-					<ThermostatIcon fontSize='small' color='primary' />
-					<Typography variant='body2'>
-						Feels {formatTemperature(item.main.feels_like, unitSystem)}
-					</Typography>
-				</Box>
-			</Grid>
-			<Grid size={{ xs: 6, sm: 3 }}>
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+		{/* Weather Description - right below feels like */}
+		<Typography
+			variant='caption'
+			color='text.secondary'
+			sx={{
+				textTransform: 'capitalize',
+				display: 'block',
+				mb: 1,
+				lineHeight: 1.2,
+				minHeight: '24px',
+			}}
+		>
+			{item.weather[0].description}
+		</Typography>
+
+		{/* Weather Details */}
+		<Box
+			sx={{
+				display: 'flex',
+				flexDirection: 'column',
+				gap: 0.5,
+			}}
+		>
+			{/* Wind & Humidity */}
+			<Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3 }}>
+				<Box
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						gap: 0.3,
+					}}
+				>
 					<WindIcon fontSize='small' color='primary' />
-					<Typography variant='body2'>
-						{formatWindSpeed(item.wind.speed, unitSystem)}{' '}
-						{getWindDirection(item.wind.deg)}
+					<Typography variant='caption'>
+						{formatWindSpeed(item.wind.speed, unitSystem)}
 					</Typography>
 				</Box>
-			</Grid>
-			<Grid size={{ xs: 6, sm: 3 }}>
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+
+				<Box
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						gap: 0.3,
+					}}
+				>
 					<HumidityIcon fontSize='small' color='primary' />
-					<Typography variant='body2'>
-						Humidity {item.main.humidity}%
-					</Typography>
+					<Typography variant='caption'>{item.main.humidity}%</Typography>
 				</Box>
-			</Grid>
-			<Grid size={{ xs: 6, sm: 3 }}>
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-					<CloudIcon fontSize='small' color='primary' />
-					<Typography variant='body2'>Clouds {item.clouds.all}%</Typography>
-				</Box>
-			</Grid>
+			</Box>
 
-			{item.pop > 0 && (
-				<Grid size={{ xs: 6, sm: 3 }}>
-					<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-						<RainIcon fontSize='small' color='info' />
-						<Typography variant='body2'>
-							Rain Chance {Math.round(item.pop * 100)}%
-						</Typography>
-					</Box>
-				</Grid>
+			{/* Rain Info Box - grouped together */}
+			{(item.pop > 0 || (item.rain && item.rain['3h'])) && (
+				<Box
+					sx={{
+						border: 1,
+						borderColor: 'info.light',
+						borderRadius: 1,
+						p: 0.5,
+						backgroundColor: 'info.50',
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 0.2,
+					}}
+				>
+					{item.pop > 0 && (
+						<Box
+							sx={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								gap: 0.3,
+							}}
+						>
+							<RainIcon fontSize='small' color='info' />
+							<Typography variant='caption' color='info.main'>
+								{Math.round(item.pop * 100)}% chance
+							</Typography>
+						</Box>
+					)}
+
+					{item.rain && item.rain['3h'] && (
+						<Box
+							sx={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								gap: 0.3,
+							}}
+						>
+							<RainIcon fontSize='small' color='info' />
+							<Typography variant='caption' color='info.main'>
+								{formatPrecipitation(item.rain['3h'], unitSystem)}
+							</Typography>
+						</Box>
+					)}
+				</Box>
 			)}
 
-			{item.rain && item.rain['3h'] && (
-				<Grid size={{ xs: 6, sm: 3 }}>
-					<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-						<RainIcon fontSize='small' color='info' />
-						<Typography variant='body2'>
-							Rain {formatPrecipitation(item.rain['3h'], unitSystem)}
-						</Typography>
-					</Box>
-				</Grid>
-			)}
-
+			{/* Snow Info Box - grouped together */}
 			{item.snow && item.snow['3h'] && (
-				<Grid size={{ xs: 6, sm: 3 }}>
-					<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+				<Box
+					sx={{
+						border: 1,
+						borderColor: 'info.light',
+						borderRadius: 1,
+						p: 0.5,
+						backgroundColor: 'grey.50',
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 0.2,
+					}}
+				>
+					<Box
+						sx={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							gap: 0.3,
+						}}
+					>
 						<SnowIcon fontSize='small' color='info' />
-						<Typography variant='body2'>
-							Snow {formatPrecipitation(item.snow['3h'], unitSystem)}
+						<Typography variant='caption' color='info.main'>
+							{formatPrecipitation(item.snow['3h'], unitSystem)}
 						</Typography>
 					</Box>
-				</Grid>
-			)}
-
-			<Grid size={{ xs: 6, sm: 3 }}>
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-					<VisibilityIcon fontSize='small' color='primary' />
-					<Typography variant='body2'>
-						Visibility {formatVisibility(item.visibility, unitSystem)}
-					</Typography>
 				</Box>
-			</Grid>
-		</Grid>
+			)}
+		</Box>
 	</Box>
 )
 
@@ -303,16 +381,6 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({
 									</Typography>
 								</Box>
 								<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-									<Chip
-										label={`${formatTemperature(
-											day.maxTemp,
-											unitSystem
-										)} / ${formatTemperature(day.minTemp, unitSystem)}`}
-										color='primary'
-										variant='filled'
-										size='medium'
-										sx={{ fontWeight: 'bold' }}
-									/>
 									{day.items.some(
 										(item) => item.rain || item.snow || item.pop > 0
 									) && (
@@ -323,6 +391,17 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({
 											size='small'
 										/>
 									)}
+									<Chip
+										label={`${formatTemperature(
+											day.maxTemp,
+											unitSystem
+										)} / ${formatTemperature(day.minTemp, unitSystem)}`}
+										color='primary'
+										variant='filled'
+										size='medium'
+										sx={{ fontWeight: 'bold' }}
+									/>
+
 									<Typography variant='body2' color='text.secondary'>
 										{day.items.length} updates
 									</Typography>
@@ -333,13 +412,36 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({
 							<Typography variant='h6' gutterBottom>
 								3-Hour Intervals
 							</Typography>
-							{day.items.map((item) => (
-								<ForecastDetail
-									key={item.dt}
-									item={item}
-									unitSystem={unitSystem}
-								/>
-							))}
+							<Box
+								sx={{
+									display: 'flex',
+									gap: 1.5,
+									overflowX: 'auto',
+									pb: 1,
+									'&::-webkit-scrollbar': {
+										height: 8,
+									},
+									'&::-webkit-scrollbar-track': {
+										backgroundColor: 'grey.100',
+										borderRadius: 4,
+									},
+									'&::-webkit-scrollbar-thumb': {
+										backgroundColor: 'grey.400',
+										borderRadius: 4,
+										'&:hover': {
+											backgroundColor: 'grey.500',
+										},
+									},
+								}}
+							>
+								{day.items.map((item) => (
+									<ForecastDetail
+										key={item.dt}
+										item={item}
+										unitSystem={unitSystem}
+									/>
+								))}
+							</Box>
 						</AccordionDetails>
 					</Accordion>
 				))}
