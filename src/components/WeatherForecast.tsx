@@ -302,62 +302,6 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({
 					{forecast.city.country}
 				</Typography>
 
-				{/* Quick Weather Highlights */}
-				<Box
-					sx={{
-						mb: 3,
-						p: 2,
-						bgcolor: 'background.paper',
-						borderRadius: 2,
-						border: 1,
-						borderColor: 'divider',
-					}}
-				>
-					<Typography variant='h6' gutterBottom>
-						Key Weather Highlights
-					</Typography>
-					<Grid container spacing={2}>
-						<Grid size={{ xs: 12, sm: 6 }}>
-							<Typography variant='body2' color='text.secondary'>
-								Temperature range:{' '}
-								{formatTemperature(
-									Math.min(...dailyForecasts.map((d) => d.minTemp)),
-									unitSystem
-								)}{' '}
-								to{' '}
-								{formatTemperature(
-									Math.max(...dailyForecasts.map((d) => d.maxTemp)),
-									unitSystem
-								)}
-							</Typography>
-							<Typography variant='body2' color='text.secondary'>
-								Rainy periods:{' '}
-								{forecast.list.filter((item) => item.pop > 0.3).length} out of{' '}
-								{forecast.list.length} forecasts
-							</Typography>
-						</Grid>
-						<Grid size={{ xs: 12, sm: 6 }}>
-							<Typography variant='body2' color='text.secondary'>
-								Max wind speed:{' '}
-								{formatWindSpeed(
-									Math.max(...forecast.list.map((item) => item.wind.speed)),
-									unitSystem
-								)}
-							</Typography>
-							<Typography variant='body2' color='text.secondary'>
-								Avg humidity:{' '}
-								{Math.round(
-									forecast.list.reduce(
-										(sum, item) => sum + item.main.humidity,
-										0
-									) / forecast.list.length
-								)}
-								%
-							</Typography>
-						</Grid>
-					</Grid>
-				</Box>
-
 				{dailyForecasts.map((day, index) => (
 					<Accordion key={day.date} defaultExpanded={index === 0}>
 						<AccordionSummary expandIcon={<ExpandMoreIcon />}>
